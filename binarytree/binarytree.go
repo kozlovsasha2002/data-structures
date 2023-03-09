@@ -26,20 +26,13 @@ func create(value int) *Treenode {
 	return &Treenode{value: value, left: nil, right: nil}
 }
 
-func Print(tree *Treenode) {
+func DepthFirstSearch(tree *Treenode, result string) string {
 	if tree != nil {
-		fmt.Print(tree.value, " ")
-		Print(tree.left)
-		Print(tree.right)
+		result += fmt.Sprintf("%d ", tree.value)
+		result = DepthFirstSearch(tree.left, result)
+		result = DepthFirstSearch(tree.right, result)
 	}
-}
-
-func DepthFirstSearch(tree *Treenode) {
-	if tree != nil {
-		DepthFirstSearch(tree.left)
-		fmt.Print(tree.value, " ")
-		DepthFirstSearch(tree.right)
-	}
+	return result
 }
 
 func Find(tree *Treenode, value int) *int {
