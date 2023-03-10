@@ -46,19 +46,29 @@ func (s *stack) Pop() (interface{}, error) {
 	return lastElement.data, nil
 }
 
-func (s *stack) Push(data interface{}) error {
+func (s *stack) Push(data interface{}) (interface{}, error) {
 	if !s.checkElementType(data) {
-		return errors.New("invalid data type")
+		return nil, errors.New("invalid data type")
 	}
 	node := NewNode(data)
 	if s.size == 0 {
 		s.last = node
 		s.size++
-		return nil
+		return data, nil
 	}
 	node.prev = s.last
 	s.last = node
 	s.size++
+	return data, nil
+}
+
+func (s *stack) PushAll(data ...interface{}) error {
+	for _, item := range data {
+		_, err := s.Push(item)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
