@@ -3,51 +3,60 @@ package linkedlist
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 )
 
-type linkedList struct {
+type node struct {
+	data interface{}
+	next *node
+	prev *node
+}
+
+func newNode(data interface{}) *node {
+	return &node{data: data, next: nil, prev: nil}
+}
+
+type LinkedList struct {
 	first *node
 	last  *node
 	size  int
 }
 
-func New() *linkedList {
-	return &linkedList{
+func New() *LinkedList {
+	return &LinkedList{
 		first: nil,
 		last:  nil,
 		size:  0,
 	}
 }
 
-func (l *linkedList) Size() int {
+func (l *LinkedList) Size() int {
 	return l.size
 }
 
-func (l *linkedList) Print() {
+func (l *LinkedList) Sprint() string {
 	if l.size == 0 {
-		fmt.Println("[]")
-		return
+		return "[]"
 	}
 
 	if l.size == 1 {
-		fmt.Printf("[%v]\n", l.first.data)
-		return
+		return fmt.Sprintf("[%v]", l.first.data)
 	}
 
-	fmt.Print("[")
+	result := "["
 	var node *node
 	for node = l.first; node != nil; node = node.next {
 		if node == l.last {
-			fmt.Print(node.data, "]\n")
+			result += fmt.Sprint(node.data, "]")
 			break
 		}
-		fmt.Print(node.data, ", ")
+		result += fmt.Sprint(node.data, ", ")
 	}
+
+	return result
 }
 
-func (l *linkedList) AddFront(data interface{}) error {
+func (l *LinkedList) AddFront(data interface{}) error {
 	if !l.checkDataType(data) {
 		return errors.New("invalid data type for adding")
 	}
@@ -65,15 +74,15 @@ func (l *linkedList) AddFront(data interface{}) error {
 	return nil
 }
 
-func (l *linkedList) Add(data interface{}) error {
+func (l *LinkedList) Add(data interface{}) (interface{}, error) {
 	if !l.checkDataType(data) {
-		return errors.New("invalid data type for adding")
+		return nil, errors.New("invalid data type for adding")
 		//log.Fatal("invalid data type for adding")
 	}
 
 	if l.size == 0 {
 		l.addToEmptyList(data)
-		return nil
+		return l.last.data, nil
 	}
 
 	node := newNode(data)
@@ -81,25 +90,24 @@ func (l *linkedList) Add(data interface{}) error {
 	l.last.next = node
 	l.last = node
 	l.size++
-	return nil
+	return l.last.data, nil
 }
 
-func (l *linkedList) addToEmptyList(data interface{}) {
+func (l *LinkedList) addToEmptyList(data interface{}) {
 	node := newNode(data)
 	l.first = node
 	l.last = node
 	l.size++
 }
 
-func (l *linkedList) AddElements(elements ...interface{}) error {
+func (l *LinkedList) AddElements(elements ...interface{}) error {
 	reflect.TypeOf(elements)
 	if len(elements) == 0 {
 		return errors.New("input parameters were not passed to the function")
-		//log.Fatal("input parameters were not passed to the function")
 	}
 
 	for _, elem := range elements {
-		err := l.Add(elem)
+		_, err := l.Add(elem)
 		if err != nil {
 			return errors.New("invalid data type")
 		}
@@ -107,31 +115,33 @@ func (l *linkedList) AddElements(elements ...interface{}) error {
 	return nil
 }
 
-func (l *linkedList) AddList(list *linkedList) error {
+func (l *LinkedList) AddList(list *LinkedList) (bool, error) {
 	if list.size == 0 {
-		return errors.New("passed list is empty")
+		return false, errors.New("passed list is empty")
 	}
 
-	if l.size != 0 && reflect.TypeOf(l.first) != reflect.TypeOf(list.first) {
-		return errors.New("lists contain different types of data")
+	if l.size != 0 {
+		if reflect.TypeOf(l.first.data) != reflect.TypeOf(list.first.data) {
+			return false, errors.New("lists contain different types of data")
+		}
 	}
 
 	for item := list.first; item != nil; item = item.next {
-		err := l.Add(item.data)
+		_, err := l.Add(item.data)
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
-	return nil
+	return true, nil
 }
 
-func (l *linkedList) SetByIndex(data interface{}, index int) error {
+func (l *LinkedList) SetByIndex(data interface{}, index int) error {
 	if !l.checkDataType(data) {
 		return errors.New("invalid data type for adding")
 	}
 
 	if l.size <= index || index < 0 {
-		return errors.New("invalid index")
+		return errors.New("invalid index. Out of range")
 	}
 
 	item := l.first
@@ -143,7 +153,7 @@ func (l *linkedList) SetByIndex(data interface{}, index int) error {
 	return nil
 }
 
-func (l *linkedList) checkDataType(data interface{}) bool {
+func (l *LinkedList) checkDataType(data interface{}) bool {
 	if l.size == 0 {
 		return true
 	}
@@ -153,7 +163,7 @@ func (l *linkedList) checkDataType(data interface{}) bool {
 	return true
 }
 
-func (l *linkedList) Remove() error {
+func (l *LinkedList) Remove() error {
 	res, err := l.removeEmptyListOrWithOneElement()
 	if err != nil {
 		return err
@@ -169,7 +179,7 @@ func (l *linkedList) Remove() error {
 	return nil
 }
 
-func (l *linkedList) RemoveFirst() error {
+func (l *LinkedList) RemoveFirst() error {
 	res, err := l.removeEmptyListOrWithOneElement()
 	if err != nil {
 		return err
@@ -185,13 +195,13 @@ func (l *linkedList) RemoveFirst() error {
 	return nil
 }
 
-func (l *linkedList) RemoveByIndex(index int) error {
-	if l.size <= index || index < 0 {
-		return errors.New("invalid index")
-	}
-
+func (l *LinkedList) RemoveByIndex(index int) error {
 	if l.size == 0 {
 		return errors.New("list is empty")
+	}
+
+	if l.size <= index || index < 0 {
+		return errors.New("invalid index")
 	}
 
 	if index == 0 {
@@ -222,7 +232,7 @@ func (l *linkedList) RemoveByIndex(index int) error {
 	return nil
 }
 
-func (l *linkedList) Clear() error {
+func (l *LinkedList) Clear() error {
 	for l.size != 0 {
 		err := l.Remove()
 		if err != nil {
@@ -232,7 +242,7 @@ func (l *linkedList) Clear() error {
 	return nil
 }
 
-func (l *linkedList) removeEmptyListOrWithOneElement() (bool, error) {
+func (l *LinkedList) removeEmptyListOrWithOneElement() (bool, error) {
 	if l.size == 0 {
 		return false, errors.New("the list is empty")
 	}
@@ -246,76 +256,86 @@ func (l *linkedList) removeEmptyListOrWithOneElement() (bool, error) {
 	return false, nil
 }
 
-func (l *linkedList) Insert(data interface{}, index int) error {
+func (l *LinkedList) Insert(data interface{}, index int) (bool, error) {
 	if !l.checkDataType(data) {
-		return errors.New("invalid data type for adding")
+		return false, errors.New("invalid data type for adding")
 	}
 
 	if l.size < index || index < 0 {
-		return errors.New("invalid index")
+		return false, errors.New("invalid index. Out of range")
 	}
 
 	if l.size == 0 {
 		l.addToEmptyList(data)
-		return nil
+		return true, nil
 	}
 
 	if index == 0 {
 		err := l.AddFront(data)
 		if err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return true, nil
 	}
 
 	if index == l.size {
-		err := l.Add(data)
+		_, err := l.Add(data)
 		if err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return true, nil
 	}
 
 	node := newNode(data)
 	curIndex := 0
+	left := newNode(-1)
+	right := newNode(-1)
 	for item := l.first; curIndex <= index-1; curIndex++ {
-		left := item
-		right := item.next
-		left.next = node
-		node.prev = left
-		right.prev = node
-		node.next = right
-		l.size++
+		left = item
+		right = item.next
+		item = item.next
 	}
-	return nil
+
+	left.next = node
+	node.prev = left
+	right.prev = node
+	node.next = right
+	l.size++
+	return true, nil
 }
 
-func (l *linkedList) First() interface{} {
-	return l.first.data
-}
-
-func (l *linkedList) Last() interface{} {
-	return l.last.data
-}
-
-func (l *linkedList) Contains(elem interface{}) bool {
+func (l *LinkedList) First() (interface{}, error) {
 	if l.size == 0 {
-		return false
+		return nil, errors.New("list is empty")
+	}
+	return l.first.data, nil
+}
+
+func (l *LinkedList) Last() (interface{}, error) {
+	if l.size == 0 {
+		return nil, errors.New("list is empty")
+	}
+	return l.last.data, nil
+}
+
+func (l *LinkedList) Contains(elem interface{}) (bool, error) {
+	if l.size == 0 {
+		return false, nil
 	}
 
 	if reflect.TypeOf(l.first.data) != reflect.TypeOf(elem) {
-		log.Fatal("list contains data of a different type")
+		return false, errors.New("list contains data of a different type")
 	}
 
 	for node := l.first; node != nil; node = node.next {
 		if node.data == elem {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
-func (l *linkedList) Clone() *linkedList {
+func (l *LinkedList) Clone() *LinkedList {
 	list := New()
 
 	for item := l.first; item != nil; item = item.next {
