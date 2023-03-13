@@ -40,14 +40,14 @@ func (s *Stack) IsEmpty() bool {
 
 func (s *Stack) Peek() (interface{}, error) {
 	if s.IsEmpty() == true {
-		return nil, errors.New("Stack is empty")
+		return nil, errors.New("stack is empty")
 	}
 	return s.last.data, nil
 }
 
 func (s *Stack) Pop() (interface{}, error) {
 	if s.IsEmpty() == true {
-		return nil, errors.New("Stack is empty")
+		return nil, errors.New("stack is empty")
 	}
 	lastElement := s.last
 	s.last = lastElement.prev
