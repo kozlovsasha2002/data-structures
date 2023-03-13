@@ -17,12 +17,9 @@ func TestQueue_IsEmpty(t *testing.T) {
 	})
 
 	t.Run("queue contains multi elements", func(t *testing.T) {
-		q := New()
-		_, err1 := q.Push("dog")
-		_, err2 := q.Push("cat")
-		if err1 != nil || err2 != nil {
-			t.Fatal("error of pushing elements to queue")
-		}
+		strings := make([]interface{}, 0)
+		strings = append(strings, 5, 2)
+		q := NewFilledQueue(strings, t)
 
 		actual := q.IsEmpty()
 		expected := false
@@ -88,11 +85,13 @@ func TestQueue_Peek(t *testing.T) {
 	})
 
 	t.Run("queue contains multi elements", func(t *testing.T) {
-		q := NewFilledQueueIntegers(3, t)
+		strings := make([]interface{}, 0)
+		strings = append(strings, 12, 14, 20)
+		q := NewFilledQueue(strings, t)
 
 		actual, err := q.Peek()
 		actualSize := q.Size()
-		expectedValue := 0
+		expectedValue := 12
 		expectedSize := 3
 
 		if err != nil {
@@ -118,16 +117,9 @@ func TestQueue_Pop(t *testing.T) {
 	})
 
 	t.Run("queue contains two elements, method works one time", func(t *testing.T) {
-		strings := make([]string, 0)
+		strings := make([]interface{}, 0)
 		strings = append(strings, "dog", "cat", "mouse")
-		q := New()
-
-		for _, item := range strings {
-			_, err := q.Push(item)
-			if err != nil {
-				t.Errorf(err.Error())
-			}
-		}
+		q := NewFilledQueue(strings, t)
 
 		actual := q.Pop()
 		expected := "dog"
@@ -151,7 +143,9 @@ func TestQueue_Size(t *testing.T) {
 	})
 
 	t.Run("queue contains multi elements", func(t *testing.T) {
-		q := NewFilledQueueIntegers(4, t)
+		strings := make([]interface{}, 0)
+		strings = append(strings, "dog", "cat", "mouse", "tiger")
+		q := NewFilledQueue(strings, t)
 
 		actual := q.Size()
 		expected := 4
@@ -162,12 +156,14 @@ func TestQueue_Size(t *testing.T) {
 	})
 
 	t.Run("after deleting one element", func(t *testing.T) {
-		q := NewFilledQueueIntegers(4, t)
+		strings := make([]interface{}, 0)
+		strings = append(strings, "dog", "cat", "mouse", "lion")
+		q := NewFilledQueue(strings, t)
 		elem := q.Pop()
 
 		actual := q.Size()
 		expected := 3
-		expectedElem := 0
+		expectedElem := "dog"
 
 		if actual != expected || elem != expectedElem {
 			t.Errorf("actual = %v and expected = %v, returning elem = %v and expected elem = %v",
@@ -183,6 +179,19 @@ func NewFilledQueueIntegers(size int, t *testing.T) *Queue {
 		_, err := q.Push(i * i)
 		if err != nil {
 			panic("error in push method")
+		}
+	}
+	return q
+}
+
+func NewFilledQueue(arr []interface{}, t *testing.T) *Queue {
+	q := New()
+	t.Helper()
+
+	for _, item := range arr {
+		_, err := q.Push(item)
+		if err != nil {
+			t.Errorf(err.Error())
 		}
 	}
 	return q
