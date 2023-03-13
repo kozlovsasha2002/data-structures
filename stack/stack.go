@@ -6,39 +6,48 @@ import (
 	"reflect"
 )
 
-type stack struct {
+type node struct {
+	data interface{}
+	prev *node
+}
+
+func NewNode(data interface{}) *node {
+	return &node{data: data, prev: nil}
+}
+
+type Stack struct {
 	last *node
 	size int
 }
 
-func New() *stack {
-	return &stack{
+func New() *Stack {
+	return &Stack{
 		last: nil,
 		size: 0,
 	}
 }
 
-func (s *stack) Size() int {
+func (s *Stack) Size() int {
 	return s.size
 }
 
-func (s *stack) IsEmpty() bool {
+func (s *Stack) IsEmpty() bool {
 	if s.size == 0 {
 		return true
 	}
 	return false
 }
 
-func (s *stack) Peek() (interface{}, error) {
+func (s *Stack) Peek() (interface{}, error) {
 	if s.IsEmpty() == true {
-		return nil, errors.New("stack is empty")
+		return nil, errors.New("Stack is empty")
 	}
 	return s.last.data, nil
 }
 
-func (s *stack) Pop() (interface{}, error) {
+func (s *Stack) Pop() (interface{}, error) {
 	if s.IsEmpty() == true {
-		return nil, errors.New("stack is empty")
+		return nil, errors.New("Stack is empty")
 	}
 	lastElement := s.last
 	s.last = lastElement.prev
@@ -46,7 +55,7 @@ func (s *stack) Pop() (interface{}, error) {
 	return lastElement.data, nil
 }
 
-func (s *stack) Push(data interface{}) (interface{}, error) {
+func (s *Stack) Push(data interface{}) (interface{}, error) {
 	if !s.checkElementType(data) {
 		return nil, errors.New("invalid data type")
 	}
@@ -62,17 +71,7 @@ func (s *stack) Push(data interface{}) (interface{}, error) {
 	return data, nil
 }
 
-func (s *stack) PushAll(data ...interface{}) error {
-	for _, item := range data {
-		_, err := s.Push(item)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *stack) Print() {
+func (s *Stack) Print() {
 	temp := s.last
 	for i := 0; i < s.size; i++ {
 		fmt.Print(temp.data, " ")
@@ -81,7 +80,7 @@ func (s *stack) Print() {
 	fmt.Println()
 }
 
-func (s *stack) checkElementType(data interface{}) bool {
+func (s *Stack) checkElementType(data interface{}) bool {
 	if s.size == 0 {
 		return true
 	}

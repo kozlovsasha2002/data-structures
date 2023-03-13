@@ -2,38 +2,36 @@ package stack
 
 import (
 	"errors"
+	"log"
 	"testing"
 )
 
 func TestStack_IsEmpty(t *testing.T) {
 	st := New()
 
-	t.Run("empty stack", func(t *testing.T) {
+	t.Run("empty Stack", func(t *testing.T) {
 		actualResult := st.IsEmpty()
 		expectedResult := true
 
 		if actualResult != expectedResult {
-			t.Errorf("stack must be empty. Actual result = %t and expected result = %t", actualResult, expectedResult)
+			t.Errorf("Stack must be empty. Actual result = %t and expected result = %t", actualResult, expectedResult)
 		}
 	})
 
-	t.Run("stack is not empty", func(t *testing.T) {
-		_, err := st.Push(5)
-		if err != nil {
-			t.Fatal("error in Push method")
-		}
+	t.Run("Stack is not empty", func(t *testing.T) {
+		st = newFilledIntStack(t)
 
 		actualResult := st.IsEmpty()
 		expectedResult := false
 
 		if actualResult != expectedResult {
-			t.Errorf("stack must be empty. Actual result = %t and expected result = %t", actualResult, expectedResult)
+			t.Errorf("Stack must be empty. Actual result = %t and expected result = %t", actualResult, expectedResult)
 		}
 	})
 }
 
 func TestStack_Peek(t *testing.T) {
-	t.Run("stack is empty", func(t *testing.T) {
+	t.Run("Stack is empty", func(t *testing.T) {
 		st := New()
 
 		actualResult, err := st.Peek()
@@ -43,7 +41,7 @@ func TestStack_Peek(t *testing.T) {
 		}
 	})
 
-	t.Run("stack contains one element", func(t *testing.T) {
+	t.Run("Stack contains one element", func(t *testing.T) {
 		st := New()
 		_, err := st.Push("test")
 		if err != nil {
@@ -58,16 +56,12 @@ func TestStack_Peek(t *testing.T) {
 		}
 	})
 
-	t.Run("stack contains more than one element", func(t *testing.T) {
-		st := New()
-		err := st.PushAll("cat", "elephant", "dog")
-		if err != nil {
-			t.Fatal("error in PushAll method")
-		}
+	t.Run("Stack contains more than one element", func(t *testing.T) {
+		st := newFilledStringStack(t)
 
 		actualResult, _ := st.Peek()
 		actualLength := st.Size()
-		expectedResult := "dog"
+		expectedResult := "cat"
 		expectedLength := 3
 
 		if actualResult != expectedResult || actualLength != expectedLength {
@@ -80,18 +74,18 @@ func TestStack_Peek(t *testing.T) {
 }
 
 func TestStack_Pop(t *testing.T) {
-	t.Run("stack is empty", func(t *testing.T) {
+	t.Run("Stack is empty", func(t *testing.T) {
 		st := New()
 
 		actualResult, err := st.Pop()
-		expectedError := errors.New("stack is empty")
+		expectedError := errors.New("Stack is empty")
 
 		if actualResult != nil || err == nil {
 			t.Errorf("actual result = %v and expected result = %v", actualResult, expectedError)
 		}
 	})
 
-	t.Run("stack contains one element", func(t *testing.T) {
+	t.Run("Stack contains one element", func(t *testing.T) {
 		st := New()
 		_, err := st.Push("one")
 		if err != nil {
@@ -111,17 +105,13 @@ func TestStack_Pop(t *testing.T) {
 		}
 	})
 
-	t.Run("stack contains more than one element", func(t *testing.T) {
-		st := New()
-		err := st.PushAll(8, 9, 11)
-		if err != nil {
-			t.Fatal("error in PushAll method")
-		}
+	t.Run("Stack contains more than one element", func(t *testing.T) {
+		st := newFilledIntStack(t)
 
 		actualResult, _ := st.Pop()
 		actualLength := st.Size()
-		expectedResult := 11
-		expectedLength := 2
+		expectedResult := 5
+		expectedLength := 1
 
 		if actualResult != expectedResult || actualLength != expectedLength {
 			t.Errorf("actual result = %v, length = %v and expected result = %v, length = %v",
@@ -133,7 +123,7 @@ func TestStack_Pop(t *testing.T) {
 }
 
 func TestStack_Push(t *testing.T) {
-	t.Run("stack is empty", func(t *testing.T) {
+	t.Run("Stack is empty", func(t *testing.T) {
 		st := New()
 
 		actualResult, _ := st.Push("dog")
@@ -163,10 +153,25 @@ func TestStack_Push(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("adding elements with different data type", func(t *testing.T) {
+		st := New()
+
+		actuals := make([]interface{}, 0)
+		actuals = append(actuals, 15, "dog")
+
+		for _, item := range actuals {
+			expected := item
+			actual, err := st.Push(item)
+			if err == nil && actual != expected {
+				t.Errorf("actual = %v and expected = %v, error = %v", actual, expected, err.Error())
+			}
+		}
+	})
 }
 
 func TestStack_Size(t *testing.T) {
-	t.Run("stack is empty", func(t *testing.T) {
+	t.Run("Stack is empty", func(t *testing.T) {
 		st := New()
 
 		actual := st.Size()
@@ -177,22 +182,8 @@ func TestStack_Size(t *testing.T) {
 		}
 	})
 
-	t.Run("stack contains two elements", func(t *testing.T) {
-		st := New()
-		st.PushAll("dog", "cat")
-
-		actual := st.Size()
-		expected := 2
-
-		if actual != expected {
-			t.Errorf("actual result = %v and expected result = %v", actual, expected)
-		}
-	})
-
-	t.Run("stack contains three element after removal", func(t *testing.T) {
-		st := New()
-		st.PushAll("dog", "cat", "elephant", "tiger")
-		st.Pop()
+	t.Run("Stack contains two elements", func(t *testing.T) {
+		st := newFilledStringStack(t)
 
 		actual := st.Size()
 		expected := 3
@@ -201,4 +192,55 @@ func TestStack_Size(t *testing.T) {
 			t.Errorf("actual result = %v and expected result = %v", actual, expected)
 		}
 	})
+
+	t.Run("Stack contains three element after removal", func(t *testing.T) {
+		st := newFilledIntStack(t)
+		_, err := st.Push(5)
+		if err != nil {
+			log.Fatal("pushing error")
+		}
+		_, err = st.Pop()
+		if err != nil {
+			log.Fatal("pop error")
+		}
+
+		actual := st.Size()
+		expected := 2
+
+		if actual != expected {
+			t.Errorf("actual result = %v and expected result = %v", actual, expected)
+		}
+	})
+}
+
+func newFilledIntStack(t *testing.T) *Stack {
+	t.Helper()
+	st := New()
+	ints := make([]int, 0)
+	ints = append(ints, 12, 5)
+
+	for _, item := range ints {
+		_, err := st.Push(item)
+		if err != nil {
+			log.Fatal("pushing error")
+		}
+	}
+
+	return st
+}
+
+func newFilledStringStack(t *testing.T) *Stack {
+	t.Helper()
+	st := New()
+	strs := make([]string, 0)
+	strs = append(strs, "dog", "mouse", "cat")
+
+	for _, item := range strs {
+		_, err := st.Push(item)
+		if err != nil {
+			log.Fatal("pushing error")
+		}
+	}
+
+	return st
 }
