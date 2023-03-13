@@ -172,18 +172,6 @@ func TestQueue_Size(t *testing.T) {
 	})
 }
 
-func NewFilledQueueIntegers(size int, t *testing.T) *Queue {
-	t.Helper()
-	q := New()
-	for i := 0; i < size; i++ {
-		_, err := q.Push(i * i)
-		if err != nil {
-			panic("error in push method")
-		}
-	}
-	return q
-}
-
 func NewFilledQueue(arr []interface{}, t *testing.T) *Queue {
 	q := New()
 	t.Helper()
