@@ -5,23 +5,32 @@ import (
 	"fmt"
 )
 
+type node struct {
+	key   string
+	value interface{}
+}
+
+func newNode(key string, value interface{}) *node {
+	return &node{key: key, value: value}
+}
+
 const (
 	defaultSize  = 10
 	rehashFactor = 0.7
 	step         = 2
 )
 
-type hashtable struct {
+type Hashtable struct {
 	capacity int
 	size     int
 	array    []*node
 }
 
-func New() *hashtable {
-	return &hashtable{capacity: defaultSize, size: 0, array: make([]*node, defaultSize)}
+func New() *Hashtable {
+	return &Hashtable{capacity: defaultSize, size: 0, array: make([]*node, defaultSize)}
 }
 
-func (h *hashtable) Put(key string, value interface{}) (bool, error) {
+func (h *Hashtable) Put(key string, value interface{}) (bool, error) {
 	if value == nil {
 		return false, errors.New("value is not nil")
 	}
@@ -56,7 +65,7 @@ func (h *hashtable) Put(key string, value interface{}) (bool, error) {
 	return false, errors.New("failed to add element")
 }
 
-func (h *hashtable) resize() error {
+func (h *Hashtable) resize() error {
 	h.capacity *= 2
 	h.size = 0
 	prevArray := h.array
@@ -72,7 +81,7 @@ func (h *hashtable) resize() error {
 	return nil
 }
 
-func (h *hashtable) fixCollision(node *node) bool {
+func (h *Hashtable) fixCollision(node *node) bool {
 	hash := h.hash(node.key)
 	if h.array[hash] == nil {
 		h.array[hash] = newNode(node.key, node.value)
@@ -91,7 +100,7 @@ func (h *hashtable) fixCollision(node *node) bool {
 	return false
 }
 
-func (h *hashtable) hash(key string) int {
+func (h *Hashtable) hash(key string) int {
 	runes := []rune(key)
 
 	hash := 0
@@ -103,7 +112,7 @@ func (h *hashtable) hash(key string) int {
 	return hash
 }
 
-func (h *hashtable) Replace(key string, value interface{}) error {
+func (h *Hashtable) Replace(key string, value interface{}) error {
 	if value == nil {
 		return errors.New("value is not nil")
 	}
@@ -116,7 +125,7 @@ func (h *hashtable) Replace(key string, value interface{}) error {
 	return errors.New("value cannot be replaced because element with given key does not exist")
 }
 
-func (h *hashtable) Find(key string) (bool, error) {
+func (h *Hashtable) Find(key string) (bool, error) {
 	hash := h.hash(key)
 	if h.array[hash] == nil {
 		return false, errors.New("unable to find value with given key")
@@ -134,7 +143,7 @@ func (h *hashtable) Find(key string) (bool, error) {
 	}
 }
 
-func (h *hashtable) Get(key string) *interface{} {
+func (h *Hashtable) Get(key string) *interface{} {
 	hash := h.hash(key)
 	if h.array[hash] == nil {
 		return nil
@@ -152,7 +161,7 @@ func (h *hashtable) Get(key string) *interface{} {
 	}
 }
 
-func (h *hashtable) Remove(key string) error {
+func (h *Hashtable) Remove(key string) error {
 	var item = h.Get(key)
 	if item == nil {
 		return errors.New("element with given key does not exist")
@@ -161,17 +170,17 @@ func (h *hashtable) Remove(key string) error {
 	return nil
 }
 
-func (h *hashtable) Size() int {
+func (h *Hashtable) Size() int {
 	return h.size
 }
 
-func (h *hashtable) Clear() {
+func (h *Hashtable) Clear() {
 	h.array = h.array[:0]
 	h.capacity = 0
 	h.size = 0
 }
 
-func (h *hashtable) Print() {
+func (h *Hashtable) Print() {
 	if len(h.array) == 0 {
 		fmt.Println("[]")
 		return

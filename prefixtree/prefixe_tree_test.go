@@ -75,7 +75,7 @@ func TestPrefixTree_Add(t *testing.T) {
 		root := New()
 
 		root.Add("rest")
-		actualResult := root.Contains("rest")
+		actualResult := root.IsContains("rest")
 		expectedResult := true
 
 		if actualResult != expectedResult {
@@ -93,7 +93,7 @@ func TestPrefixTree_Add(t *testing.T) {
 		}
 
 		root.Add("test")
-		actualResult := root.Contains("test")
+		actualResult := root.IsContains("test")
 		expectedResult := true
 
 		if actualResult != expectedResult {
@@ -125,7 +125,7 @@ func TestPrefixTree_AddAll(t *testing.T) {
 			panic(err.Error())
 		}
 
-		actualResult := root.Contains("apple")
+		actualResult := root.IsContains("apple")
 		expectedResult := true
 
 		if actualResult != expectedResult {
@@ -146,7 +146,7 @@ func TestPrefixTree_AddAll(t *testing.T) {
 		expectedResult := true
 
 		for _, item := range inputData {
-			if !root.Contains(item) {
+			if !root.IsContains(item) {
 				actualResult = false
 			}
 		}
@@ -170,11 +170,11 @@ func TestPrefixTree_AddAll(t *testing.T) {
 	})
 }
 
-func TestPrefixTree_Contains(t *testing.T) {
+func TestPrefixTree_IsContains(t *testing.T) {
 	t.Run("tree is empty. Desired element = \"\"", func(t *testing.T) {
 		root := New()
 
-		actualResult := root.Contains("")
+		actualResult := root.IsContains("")
 		expectedResult := false
 
 		if actualResult != expectedResult {
@@ -185,7 +185,7 @@ func TestPrefixTree_Contains(t *testing.T) {
 	t.Run("tree is empty", func(t *testing.T) {
 		root := New()
 
-		actualResult := root.Contains("any")
+		actualResult := root.IsContains("any")
 		expectedResult := false
 
 		if actualResult != expectedResult {
@@ -202,7 +202,7 @@ func TestPrefixTree_Contains(t *testing.T) {
 			panic(err.Error())
 		}
 
-		actualResult := root.Contains("april")
+		actualResult := root.IsContains("april")
 		expectedResult := true
 
 		if actualResult != expectedResult {
@@ -219,7 +219,7 @@ func TestPrefixTree_Contains(t *testing.T) {
 			panic(err.Error())
 		}
 
-		actualResult := root.Contains("china")
+		actualResult := root.IsContains("china")
 		expectedResult := false
 
 		if actualResult != expectedResult {
@@ -263,7 +263,7 @@ func TestPrefixTree_Remove(t *testing.T) {
 		result := root.Remove("cherry")
 		expectedResult := true
 
-		isDeleted := root.Contains("cherry")
+		isDeleted := root.IsContains("cherry")
 
 		if result != expectedResult {
 			t.Errorf("expected result:%t, real result:%t", expectedResult, result)

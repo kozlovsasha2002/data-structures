@@ -58,7 +58,7 @@ func (p *PrefixTree) AddAll(strings []string) error {
 	return nil
 }
 
-func (p *PrefixTree) Contains(str string) bool {
+func (p *PrefixTree) IsContains(str string) bool {
 	current := p.head
 	for _, ch := range str {
 		char := string(ch)
