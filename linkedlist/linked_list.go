@@ -327,6 +327,9 @@ func (l *LinkedList) Contains(elem interface{}) (bool, error) {
 		return false, errors.New("list contains data of a different type")
 	}
 
+	if l.last.data == elem {
+		return true, nil
+	}
 	for node := l.first; node != nil; node = node.next {
 		if node.data == elem {
 			return true, nil
