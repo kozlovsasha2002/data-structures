@@ -32,7 +32,7 @@ func New() *Hashtable {
 
 func (h *Hashtable) Put(key string, value interface{}) (bool, error) {
 	if value == nil {
-		return false, errors.New("value is not nil")
+		return false, errors.New("value is nil")
 	}
 
 	node := newNode(key, value)
@@ -108,6 +108,9 @@ func (h *Hashtable) hash(key string) int {
 		hash += int(item-'0')*index - 11
 	}
 
+	if hash < 0 {
+		hash *= -1
+	}
 	hash %= h.capacity
 	return hash
 }
@@ -125,26 +128,35 @@ func (h *Hashtable) Replace(key string, value interface{}) error {
 	return errors.New("value cannot be replaced because element with given key does not exist")
 }
 
-func (h *Hashtable) Find(key string) (bool, error) {
+func (h *Hashtable) Find(key string) bool {
 	hash := h.hash(key)
+
+	if h.size == 0 {
+		return false
+	}
+
 	if h.array[hash] == nil {
-		return false, errors.New("unable to find value with given key")
+		return false
 	}
 
 	if h.array[hash].key == key {
-		return true, nil
+		return true
 	} else {
 		for i := hash; i < len(h.array)-step; i += step {
 			if h.array[i] != nil && h.array[i].key == key {
-				return true, nil
+				return true
 			}
 		}
-		return false, errors.New("unable to find value with given key")
+		return false
 	}
 }
 
 func (h *Hashtable) Get(key string) *interface{} {
 	hash := h.hash(key)
+	if h.size == 0 {
+		return nil
+	}
+
 	if h.array[hash] == nil {
 		return nil
 	}
@@ -162,11 +174,12 @@ func (h *Hashtable) Get(key string) *interface{} {
 }
 
 func (h *Hashtable) Remove(key string) error {
-	var item = h.Get(key)
-	if item == nil {
+	hash := h.hash(key)
+	if h.array[hash] == nil {
 		return errors.New("element with given key does not exist")
 	}
-	item = nil
+	h.array[hash] = nil
+	h.size--
 	return nil
 }
 
@@ -174,9 +187,9 @@ func (h *Hashtable) Size() int {
 	return h.size
 }
 
-func (h *Hashtable) Clear() {
-	h.array = h.array[:0]
-	h.capacity = 0
+func (h *Hashtable) RemoveAll() {
+	h.array = make([]*node, defaultSize)
+	h.capacity = defaultSize
 	h.size = 0
 }
 
