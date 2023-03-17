@@ -1,17 +1,18 @@
 package binarytree
 
 import (
+	"errors"
 	"fmt"
 	"math"
 )
 
-type Treenode struct {
+type treenode struct {
 	value int
-	left  *Treenode
-	right *Treenode
+	left  *treenode
+	right *treenode
 }
 
-func Add(tree *Treenode, value int) *Treenode {
+func Add(tree *treenode, value int) *treenode {
 	if tree == nil {
 		tree = create(value)
 	} else if value < tree.value {
@@ -22,25 +23,40 @@ func Add(tree *Treenode, value int) *Treenode {
 	return tree
 }
 
-func create(value int) *Treenode {
-	return &Treenode{value: value, left: nil, right: nil}
+func AddAll(inputElements []int) *treenode {
+	if len(inputElements) == 0 {
+		return nil
+	}
+
+	tree := Add(nil, inputElements[0])
+	for i, _ := range inputElements {
+		if i > 0 {
+			tree = Add(tree, inputElements[i])
+		}
+	}
+	return tree
 }
 
-func PrintDFS(tree *Treenode, nilString string) string {
+func create(value int) *treenode {
+	return &treenode{value: value, left: nil, right: nil}
+}
+
+func PrintDFS(tree *treenode, nilString string) string {
 	if tree != nil {
-		nilString += fmt.Sprintf("%d ", tree.value)
+
 		nilString = PrintDFS(tree.left, nilString)
+		nilString += fmt.Sprintf("%d ", tree.value)
 		nilString = PrintDFS(tree.right, nilString)
 	}
 	return nilString
 }
 
-func Find(tree *Treenode, value int) *int {
-	if &tree.value == nil {
-		return nil
+func Find(tree *treenode, value int) bool {
+	if tree == nil {
+		return false
 	}
 	if tree.value == value {
-		return &tree.value
+		return true
 	}
 	if tree.value < value {
 		return Find(tree.right, value)
@@ -48,71 +64,84 @@ func Find(tree *Treenode, value int) *int {
 	if tree.value > value {
 		return Find(tree.left, value)
 	}
-	return nil
+	return false
 }
 
-func Delete(tree *Treenode, value int) *Treenode {
+// Delete method removes an element in this way: finds the element to be removed,
+// and then replaces it with the smallest element from the right subtree of the element being searched for.
+func Delete(tree *treenode, value int) (*treenode, error) {
 	if tree == nil {
-		return tree
+		return tree, errors.New("tree is empty")
 	}
 
 	if value < tree.value {
-		tree.left = Delete(tree.left, value)
+		tree.left, _ = Delete(tree.left, value)
 	} else if value > tree.value {
-		tree.right = Delete(tree.right, value)
+		tree.right, _ = Delete(tree.right, value)
 	} else {
 		if tree.left == nil {
 			temp := tree.right
 			tree = nil
-			return temp
+			return temp, nil
 		} else if tree.right == nil {
 			temp := tree.left
 			tree = nil
-			return temp
+			return temp, nil
 		}
-		temp := minValue(tree.right)
+		temp, err := minValue(tree.right)
+		if err != nil {
+			return nil, err
+		}
 
 		tree.value = temp.value
-		tree.right = Delete(tree.right, temp.value)
+		tree.right, _ = Delete(tree.right, temp.value)
 	}
-	return tree
+	return tree, nil
 }
 
-func minValue(tree *Treenode) *Treenode {
+func minValue(tree *treenode) (*treenode, error) {
+	if tree == nil {
+		return nil, errors.New("node is nil")
+	}
 	current := tree
 	for current.left != nil {
 		current = current.left
 	}
-	return current
+	return current, nil
 }
 
-func IsEmpty(tree *Treenode) bool {
+func IsEmpty(tree *treenode) bool {
 	if tree == nil {
 		return true
 	}
 	return false
 }
 
-func PrintBFS(tree *Treenode) {
+func PrintBFS(tree *treenode) string {
+	result := ""
 	h := height(tree)
 	for i := 0; i < h; i++ {
-		printLevel(tree, i)
+		result += sprintLevel(tree, i)
 	}
+	return result
 }
 
-func printLevel(tree *Treenode, level int) {
-	if tree == nil {
-		return
+func sprintLevel(node *treenode, levelNumber int) string {
+	level := ""
+	if node == nil {
+		return level
 	}
-	if level == 0 {
-		fmt.Print(tree.value, " ")
-	} else if level > 0 {
-		printLevel(tree.left, level-1)
-		printLevel(tree.right, level-1)
+
+	if levelNumber == 0 {
+		level += fmt.Sprint(node.value, " ")
+	} else if levelNumber > 0 {
+		level += sprintLevel(node.left, levelNumber-1)
+		level += sprintLevel(node.right, levelNumber-1)
 	}
+	return level
 }
 
-func height(tree *Treenode) int {
+func height(tree *treenode) int {
 	if tree == nil {
 		return 0
 	}
