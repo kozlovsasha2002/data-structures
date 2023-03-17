@@ -35,4 +35,6 @@ Description: a hash table is a data structure that is an efficient data structur
 Features of implementation: this implementation of the hash table allows using only a string data type as a key, any data type can be used as a value. To eliminate collisions, the method with open addressing is used.
 
 ### Directed weight graph
-Description: a graph is a data structure that is a collection of nodes that have data and are connected to other nodes using edges. A bidirectional graph is one whose edges have a direction. A weighted graph is a graph whose edges have a weight.
+Description: a graph is a data structure that is a collection of nodes that have data and are connected to other nodes using edges. A directed graph is one whose edges have a direction. A weighted graph is a graph whose edges have a weight.
+
+Features of implementation: this implementation of the graph allows you to store only the string type of data.
