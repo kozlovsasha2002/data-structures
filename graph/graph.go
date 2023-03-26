@@ -6,104 +6,131 @@ import (
 )
 
 const (
-	NodeAlreadyExists = "a node with this value already exists"
-	NodeNotExists     = "one of the nodes does not exist"
-	EdgeNotExists     = "edges with such nodes do not exist"
+	EdgeAlreadyExists = "attempt to add an already existing edge"
+	EdgeNotExists     = "edge with such value do not exist"
+	PathNotExists     = "there is no path from the given node to the target node"
 )
 
 type graph struct {
-	listOfNodes map[interface{}]*node
+	listOfEdges map[string][]*Edge
 }
 
 func New() *graph {
-	return &graph{listOfNodes: make(map[interface{}]*node)}
+	return &graph{listOfEdges: make(map[string][]*Edge)}
 }
 
 type Edge struct {
-	dataOfStartNode string
-	dataOfEndNode   string
-	weight          int
+	start  string
+	end    string
+	weight int
 }
 
-func CreateEdge(dataOfStartNode, dataOfEndNode string, weight int) *Edge {
-	return &Edge{dataOfStartNode: dataOfStartNode, dataOfEndNode: dataOfEndNode, weight: weight}
+func CreateEdge(startNode, endNode string, weight int) *Edge {
+	return &Edge{start: startNode, end: endNode, weight: weight}
 }
 
-type node struct {
-	data      string
-	neighbors map[*node]int
+func (g *graph) AddEdge(startNode, endNode string, weight int) {
+	edge := CreateEdge(startNode, endNode, weight)
+	g.listOfEdges[startNode] = append(g.listOfEdges[startNode], edge)
 }
 
-func createNode(data string) *node {
-	return &node{data: data, neighbors: make(map[*node]int)}
-}
-
-func (g *graph) AddNode(data string) error {
-	newNode := createNode(data)
-
-	if g.isExist(newNode) {
-		return errors.New(NodeAlreadyExists)
+func (g *graph) AddEdges(edges []*Edge) error {
+	for _, edge := range edges {
+		if g.IsExist(edge) {
+			return errors.New(EdgeAlreadyExists)
+		}
+		g.listOfEdges[edge.start] = append(g.listOfEdges[edge.start], edge)
 	}
-
-	g.listOfNodes[data] = newNode
 	return nil
 }
 
-func (g *graph) isExist(n *node) bool {
-	if _, ok := g.listOfNodes[n.data]; ok {
-		return true
+func (g *graph) IsExist(edge *Edge) bool {
+	list := g.listOfEdges[edge.start]
+	for index := range list {
+		if list[index].end == edge.end && list[index].weight == edge.weight {
+			return true
+		}
 	}
 	return false
 }
 
-func (g *graph) AddAllNodes(data []string) error {
-	for _, item := range data {
-		err := g.AddNode(item)
-		if err != nil {
-			return err
+func (g *graph) ChangeWeightInEdge(startNode, endNode string, newWeight int) error {
+	for _, edge := range g.listOfEdges[startNode] {
+		if edge.end == endNode {
+			edge.weight = newWeight
+			return nil
 		}
 	}
-	return nil
+	return errors.New(EdgeNotExists)
 }
 
-func (g *graph) AddEdge(start, end string, weight int) {
-	if !g.isExist(createNode(start)) {
-		g.AddNode(start)
+func (g *graph) RemoveEdgeBetweenNodes(startNode, endNode string) bool {
+	list := g.listOfEdges[startNode]
+	for i := range list {
+		if list[i].end == endNode {
+			list[i] = list[len(list)-1]
+			g.listOfEdges[startNode] = g.listOfEdges[startNode][:len(list)-1]
+			if len(g.listOfEdges[startNode]) == 0 {
+				delete(g.listOfEdges, startNode)
+			}
+			return true
+		}
 	}
-
-	if !g.isExist(createNode(end)) {
-		g.AddNode(end)
-	}
-
-	startNode, _ := g.listOfNodes[start]
-	endNode, _ := g.listOfNodes[end]
-	startNode.neighbors[endNode] = weight
+	return false
 }
 
-func (g *graph) AddEdges(edges []*Edge) {
-	for _, edge := range edges {
-		g.AddEdge(edge.dataOfStartNode, edge.dataOfEndNode, edge.weight)
+func (g *graph) RemoveNode(node string) bool {
+	wasDeletion := false
+	for _, startNode := range g.listOfEdges {
+		for _, str := range startNode {
+			if str.start == node {
+				delete(g.listOfEdges, str.start)
+				wasDeletion = true
+			}
+			if str.end == node {
+				g.RemoveEdgeBetweenNodes(str.start, str.end)
+				wasDeletion = true
+			}
+		}
+	}
+	return wasDeletion
+}
+
+func (g *graph) Clear() {
+	for key, _ := range g.listOfEdges {
+		delete(g.listOfEdges, key)
 	}
 }
 
-func (g *graph) RemoveEdgeBetweenNodes(start, end string) error {
-	if !g.isExist(createNode(start)) || !g.isExist(createNode(end)) {
-		return errors.New(NodeNotExists)
+// FindShortestPathBFS using BFS algorithm and finds the minimum number of edges between two nodes
+func (g *graph) FindShortestPathBFS(initNode, targetNode string) (int, error) {
+	if len(g.listOfEdges[initNode]) == 0 {
+		return 0, errors.New(PathNotExists)
 	}
 
-	startNode, _ := g.listOfNodes[start]
-	if _, ok := startNode.neighbors[createNode(end)]; ok {
+	if initNode == targetNode {
+		return 0, nil
+	}
+
+	q := newQueue()
+	q.push(initNode)
+	alreadyChecked := make(map[string]int)
+	minAmountOfEdges := 0
+
+	for q.size != 0 {
+		currentNode := q.pop()
+
+		for _, item := range g.listOfEdges[currentNode] {
+			q.push(item.end)
+			amount := alreadyChecked[item.start] + 1
+			alreadyChecked[item.end] = amount
+		}
+
+		if currentNode == targetNode {
+			minAmountOfEdges = alreadyChecked[currentNode]
+			break
+		}
 
 	}
-	return nil
+	return minAmountOfEdges, nil
 }
-
-//удалить вершину, при удалении вершины удаляются все ребра с ней взаимосвязанные
-
-//изменить вес в ребре, если ребра не существует ошибка
-
-//найти кратчайший путь по алгоритмы Дейкстры (он не работает с отрицательными ребрами
-
-//найти кратчайший путь поиском в ширину (в данном алгоритме не учитываются веса ребёр)
-
-//найти кратчайший путь по алгоритму Форда-Баллмана, который работает с отрицательными ребрами
